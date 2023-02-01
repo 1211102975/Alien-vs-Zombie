@@ -2,7 +2,15 @@
 
 Please introduce the game here.
 
-  This game is basically a merge of Alien Path Game and Alien vs Zombie Game, user able to experience both game features together. In this game players plays as Alien character will have to attack Zombies until all the Zombies were defeated to win the game. Players get to control the Aliens to move by entering commands like (up,down,left,right) and leaves a trial on its path. Unlike Zombie is given initial attack power,Alien have to attain attack power by collecting arrow while the direction of the Alien may be changed depending on the arrows facing direction. Eventhough Alien and Zombie take turn to move but Alien get to move continuiously until it hits the boarder of the game , attack zombie and the zombie survives and encounter object like rock. The speaial part is that players actually get to change the arrow direction in the command by calling arrow  ,insert the exact location and new direction. Zombie in this game is given a speacial feature too, some of the zombie have wide range of attack while Alien only can attack with 1 range. But there is also pod object that can be collected by Alien only ,it can instanlly damage the Zombies life.
+Zombies are coming for you, the world is at war, Alien must fight!
+Alien-vs-Zombie combines Puzzle, Path-Planing and strategy for an out-of-this-world gaming experince.Players must eliminate enimies by cleverly navigating the aliens on a path to destroy the invading zombie.Each move counts, so set a path and pave your way to destroy zombies.Only a well-planned out strategy will see the survival of Alien .
+
+Features:
+-Mind Blowing Strategy:
+  Get a diresct strike at Zombies by planing a combo attack with changing the arrow object direction before navidating the Alien.
+-Distinctive zombies to fight making the game easy but challengeing:
+  Number of zombies increases the dificulty level of the game as the zombie have witdh range of attack.
+  
 You may add one signature screenshot of your program here or above the title. Check out [this tutorial](https://www.digitalocean.com/community/tutorials/markdown-markdown-images) to learn how to do it.
 ![image]()
 
