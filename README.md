@@ -4,8 +4,8 @@ Zombies are coming for you, the world is at war, Alien must fight!<br>
 Alien-vs-Zombie combines Puzzle, Path-Planing and strategy for an out-of-this-world gaming experince.Players must eliminate enimies by cleverly navigating the aliens on a path to destroy the invading zombie.Each move counts, so set a path and pave your way to destroy zombies.Only a well-planned out strategy will see the survival of Alien .
 
 Features:<br><br>
- -Mind Blowing Strategy:<br>
-  <p>  Get a diresct strike at Zombies by planing a combo attack with changing the arrow object direction before navidating the Alien.<br><br></p>
+ -Mind Blowing Strategy:<br><br>
+  Get a diresct strike at Zombies by planing a combo attack with changing the arrow object direction before navidating the Alien.<br><br>
  -Distinctive zombies to fight making the game easy but challengeing:<br><br>
   Number of zombies increases the dificulty level of the game as the zombie have witdh range of attack.<br><br>
   
