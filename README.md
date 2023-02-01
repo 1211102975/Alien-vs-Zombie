@@ -11,7 +11,7 @@ Features:<br><br>
  -Distinctive zombies to fight making the game easy but challengeing:<br><br>
   Number of zombies increases the dificulty level of the game as the zombie have witdh range of attack.<br><br>
   
- YouTube link to [Video Demo](https://youtube.com).
+ YouTube link to [Video Demo](https://youtu.be/SUp9QGdEqf0).
 
 ## Compilation Instructions
 
