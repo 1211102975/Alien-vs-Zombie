@@ -5,9 +5,9 @@ Alien-vs-Zombie combines Puzzle, Path-Planing and strategy for an out-of-this-wo
 
 Features:<br><br>
  -Mind Blowing Strategy:<br>
-  <p> &nbsp Get a diresct strike at Zombies by planing a combo attack with changing the arrow object direction before navidating the Alien.<br><br></p>
+  <p>  Get a diresct strike at Zombies by planing a combo attack with changing the arrow object direction before navidating the Alien.<br><br></p>
  -Distinctive zombies to fight making the game easy but challengeing:<br><br>
-   Number of zombies increases the dificulty level of the game as the zombie have witdh range of attack.<br><br>
+  Number of zombies increases the dificulty level of the game as the zombie have witdh range of attack.<br><br>
   
 You may add one signature screenshot of your program here or above the title. Check out [this tutorial](https://www.digitalocean.com/community/tutorials/markdown-markdown-images) to learn how to do it.
 ![image]()
