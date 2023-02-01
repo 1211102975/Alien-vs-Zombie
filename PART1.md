@@ -2,7 +2,7 @@
 
 ## Video Demo
 
-Please provide the YouTube link to your [Video Demo](https://youtube.com).
+ YouTube link to [Video Demo](https://youtube.com).
 
 ## Minimum Requirements
 
@@ -54,17 +54,20 @@ List down the contribution of each group members.
 
 ### Loi Xinyi
 
-1. 
-2. *add more*
+1. Alien movement
+2. Alien attack zombie when encounter.
+3. Heal,pod,rock and arrow function.
+4. Alien leaves trial and trail reset when turn end.
 
 ### Lam Yuet Xin
 
-1. Randomly generate game board.
-2. *add more*
+1. Randomly generate gameboard.
+2. Randomly generate object (arrow,heal,pod,rock,space).
+3. Randomly generate Zombie on gameboard.
 
 ### Mischelle
 
-1. 
+1. Alien is constant at the center of gameboard.
 2. *add more*
 
 ## Problems Encountered & Solutions
