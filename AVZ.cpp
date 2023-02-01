@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
-#include "pf\helper.h"
+#include "helper.h"
 namespace avz
 {
 	Gameboard::Gameboard():rowCount(3),columnCount(19), zombieCount(3), objects(rowCount), zombies(0), control(nullptr)//, map(nullptr)
