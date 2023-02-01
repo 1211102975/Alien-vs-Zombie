@@ -1,5 +1,7 @@
 # Alien-vs-Zombie
 
+![](images/AlienPath.png)
+
 Zombies are coming for you, the world is at war, Alien must fight!<br>
 Alien-vs-Zombie combines Puzzle, Path-Planing and strategy for an out-of-this-world gaming experince.Players must eliminate enimies by cleverly navigating the aliens on a path to destroy the invading zombie.Each move counts, so set a path and pave your way to destroy zombies.Only a well-planned out strategy will see the survival of Alien .
 
