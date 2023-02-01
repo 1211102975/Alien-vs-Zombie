@@ -20,6 +20,7 @@ Provide instructions on how to compile your program, especially when it is non-t
 For example:
 
 ```
+cmd
 mingw32-make all
 alienvszombie.exe
 ```
