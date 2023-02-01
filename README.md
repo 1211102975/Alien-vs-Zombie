@@ -25,7 +25,65 @@ alienvszombie.exe
 ```
 
 ## User Manual
-The main page when user enter will be the game default setting while the user can choose to change the gameboard size and number of Zombie for difficulty.
+Character: Alien, and zombie
+
+Alien: Player control Alien
+Zombie: Computer generator 
+
+
+Overview
+"Alien vs Zombie" is played on a grid of characters. Players can input commands to move the alien around the grid and interact with the zombies. The player controls alien to defeat all the Zombies only with close range. 
+
+Prior to the game, the player can customize settings including game board dimensions and number of zombies to increase difficulties. Life and attack values of the alien and zombies is always displayed.The player can also save a game into a file and load a game from a file.
+
+Command-Player plays the game by typing commands.
+
+1. Up '^'
+Alien to move up. 
+
+2. down 'v'
+Alien to move down.
+ 
+3. left '<'
+Alien to move left. 
+
+4. right '>'
+Alien to move right. 
+
+5. arrow 
+Changes Alien's direction of movement with an arrow object in the game board. User will need to enter the row and column of the arrow object to switch, followed by the direction of the arrow object to switch to.
+
+6. help 
+Display the commands that the player can use in the game. 
+
+7. save 
+Save the current game to a file. (The player will be asked to enter the name of the file to save to). 
+
+8. load 
+Load a saved game from a file (The player will be asked to enter the name of the file to load from). 
+
+9. quit 
+Quit the game while still in play. 
+
+Game Objects
+
+1. Health pack 'h'
+Adds 20 life to Alien (if life not full)
+
+2. Pod 'p' 
+Instantly inflicts 10 damage to Zombie when hit by Alien
+
+3. Rock 'r' 
+Hides a game object (except Rock and Trail) beneath it. 
+Reveals the hidden game object when hit by Alien. 
+Stops the Alien from moving. 
+
+4. Empty Space ' '
+Just an empty space on the board. 
+
+5. Trail '.'
+Left by Alien when it moves.
+Reset to a random game object (except the Trail) after Alien’s turn ends.
 
 ## Progress Log
 
