@@ -9,8 +9,8 @@
 // ********************************************************* 
 
 
-#include "pf\helper.h"
-#include "pf\helper.cpp"
+#include "helper.h"
+#include "helper.cpp"
 #include <cstdlib>
 #include <ctime> 
 #include <iostream>
