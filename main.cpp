@@ -97,4 +97,76 @@ int main()
     
 }
 
+int main()
+{
+	int kRows = 9;
+	int kColumns = 9;
+	int kZombie = 5;
+	cout << "Assignment (Part 1)" << endl;
+    cout << "Let's Get Started!" << endl;
+    char yn ='n';
+
+    cout<<"Default Game Setting"<< endl;
+    cout<<"-----------------"<< endl;
+    cout<<"Board Rows:"<< kRows<<endl;
+    cout<<"Board Columns:"<< kColumns<<endl;
+    cout<<"Zombie Count:"<<kZombie<< endl;
+    cout<< endl;
+    cout<<"Do you wish to change the game settings (y/n)?=>";
+    cin >> yn;
+    
+    //srand(1);
+	srand(time(0));
+	
+	int r;
+	int c;
+	int z;
+         if(yn =='Y' ||yn =='y')
+    {
+       
+     cout<<"Board Setting"<< endl;
+     cout<<"-----------------"<< endl;
+ 
+        cout<<"Enter row =>";
+        cin>>r;
+        while (r % 2 == 0)
+        {
+            cout<<"Please enter an odd number"<<endl;
+            cout<<"Enter row =>";
+            cin>>r;
+        }
+            cout<<"Enter column =>";
+            cin>>c;
+            while (c % 2 == 0)
+        {
+            cout<<"Please enter an odd number"<<endl;
+            cout<<"Enter column =>";
+            cin>>c;
+        }
+            cout<<endl;
+            cout<<"Zombie Setting"<< endl;
+            cout<<"-----------------"<< endl;
+            cout<<"Enter number of zombie =>";
+            cin>>z;
+            cout<<endl;
+            cout<<"Setting Updated."<< endl;
+            cout<<"Press any key to continue . . ."<< endl;
+    }
+	else
+	{
+		r = kRows;
+		c = kColumns;
+		z = kZombie;
+	}	
+
+	avz::Gameboard gb = avz::Gameboard(r, c,z);
+	avz::Object* ptr = nullptr;
+	avz::Alien alien = avz::Alien(gb);
+	gb.placeAlien(alien,gb.getColumnCount()/2,gb.getRowCount()/2);
+	avz::Control control(gb,alien);
+	
+	control.work();
+    
+}
+
 
