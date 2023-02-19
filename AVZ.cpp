@@ -32,21 +32,37 @@ namespace avz
 		this->randFill();
 		this->randFillZombie();
 	}
+	
+		Gameboard::Gameboard(const int row, const int column, int zbCount): rowCount(row),columnCount(column) ,zombieCount(zbCount), objects(row),zombies(0), control(nullptr)//, map(nullptr), 
+	{
+		std::cout << "Gameboard" << std::endl;
+		
+		std::srand(time(0));
+		this->randFill();
+		this->randFillZombie();
+	}
+
 
 	Gameboard::~Gameboard()
 	{
-		int i = 0;
+		Object* ptr = nullptr;
+		this->zombies.clear();
 		
-		// if(this->map!=nullptr)
-		// {
-			// for(i=0; i < this->rowCount; ++i)
-			// {
+		for(std::list<std::list<Object*> >::iterator it = this->objects.begin(); it != this->objects.end();)
+		{
+			for(std::list<Object*>::iterator inner_it = it->begin(); inner_it!= it->end();)
+			{
+				ptr = *inner_it;
+				inner_it = it->erase(inner_it);
+				if((this->control!=nullptr)&&(ptr!=(&(this->control->getAlien()))))
+				{
+					delete ptr;
+				}
 				
-				// delete[] *((this->map)+i);
-				
-				
-			// }
-		// }
+			}
+			it = this->objects.erase(it);
+		}
+		
 	}
 	
 	void Gameboard::setControl(Control* ptr)
@@ -59,11 +75,13 @@ namespace avz
 				(*inner_it)->setControl(this->control);
 			}
 		}
+		std::cout.flush();
 	}
 	
 	void Gameboard::randFill()
 	{
 		Object* ptr = nullptr;
+		Pod* podPtr = nullptr;
 		int i = 0;
 		int j = 0;
 		int randomNumber = 0;
@@ -131,6 +149,20 @@ namespace avz
 				}
 				if(ptr!=nullptr)
 				{
+					if(podPtr!=nullptr)
+					{
+						smaller = this->getRowCount();
+						if(this->getColumnCount()<smaller)
+							smaller = this->getColumnCount();
+						do
+						{
+							randomRange  = std::rand()%smaller;
+						
+						}while(randomRange==0);
+						podPtr->setAttackRange(randomRange);
+						podPtr = nullptr;
+					}
+					
 					ptr->setX(j);
 					ptr->setY(i);
 					ptr->setControl(this->control);
@@ -146,6 +178,7 @@ namespace avz
 		}
 	
 	}
+	
 	
 	void Gameboard::randFillZombie()
 	{
@@ -219,6 +252,48 @@ namespace avz
 		}
 	}
 	
+	bool Gameboard::isZombie(const int x, const int y) const
+	{
+		bool result = false;
+		for(std::list< Zombie*>::const_iterator cit = this->zombies.begin(); (result==false)&&(cit!=this->zombies.end());cit++)
+		{
+			Zombie* zombie = *cit;
+			if(zombie!=nullptr)
+			{
+				result = ((zombie->getX()==x)&&(zombie->getY()==y));
+			}
+		}
+		
+		return result;
+		
+	}
+	
+	bool Gameboard::isArrow(const int x, const int y) 
+	{
+		bool result = false;
+		char ch = 0;
+		Object obj = this->getObjectAt(x,y);
+		ch = obj.getSymbol();
+		result = (ch=='<')||(ch=='^')||(ch=='>')||(ch=='v');
+		
+		return result;
+		
+	}
+	
+	void Gameboard::fill()
+	{
+		this->objects.resize(this->rowCount);
+		for( std::list<std::list<Object*> >::iterator it = this->objects.begin(); it!=this->objects.end(); it++)
+		{
+			std::list<Object*>& object = *it;
+			object.resize(this->columnCount);
+		}
+	}
+	
+	void Gameboard::fillZombies()
+	{
+		this->zombies.resize(this->zombieCount);
+	}
 	
 	void Gameboard::placeAlien(Alien& alien, const int x, const int y)
 	{
@@ -379,8 +454,11 @@ namespace avz
 	
 	void Gameboard::refreshAllTrail()
 	{
+		int i = 0;
+		int j = 0;
 		for(std::list< std::list<Object*> >::iterator it = this->objects.begin(); it!=this->objects.end(); it++ )
 		{
+			i = 0;
 			for(std::list<Object*>::iterator inner_it = (*it).begin(); inner_it!=(*it).end(); inner_it++)
 			{
 				Object& obj = (*inner_it)->reveal();
@@ -388,13 +466,17 @@ namespace avz
 				if((&obj)!=(*inner_it))
 				{
 					*inner_it = &obj;
+					(*inner_it)->setX(i);
+					(*inner_it)->setY(j);
 					delete pt;
 				}
-								
+				++i;				
 			}
+			++j;
 		}
 		
 	}
+	
 	
 	
 
@@ -611,6 +693,765 @@ namespace avz
 	//	this->symbol = 'A';
 	//}
 	
+		void Gameboard::alienMove(int direction)
+	{
+		int next = -1;
+		bool check = false;
+		Object* obj = nullptr;
+		int x = -1;
+		int y = -1;
+		int previousX = -1;
+		int previousY = -1;
+		Object* obj1 = nullptr;
+		int _nextDirection = direction;
+		
+		if(this->control!=nullptr)
+		{
+			this->control->getAlien().setMovement(_nextDirection);
+			while((_nextDirection=this->control->getAlien().getMovement())!=0)
+			{
+				check = false;
+				next = this->control->getAlien().move();
+				
+				if(next>=0)
+				{
+					switch(_nextDirection)
+					{
+						//right or left
+						case 1:
+						case 3:
+							check = this->withinBoard(next,0);
+							x = next;
+							y = this->control->getAlien().getY();
+						break;
+						
+						//down or up
+						case 2:
+						case 4:
+							check = this->withinBoard(next,1);
+							y = next;
+							x = this->control->getAlien().getX();
+						break;
+						
+					}
+					
+				}
+				std::cout << "next=" << next << ",check=" << check << std::endl;
+				if(check==false)
+				{	
+					//alien stop. hits border
+					this->control->getAlien().setMovement(0);
+			
+				}
+				else
+				{
+					obj = &(this->getObjectAt(x,y));
+					this->encounter(&(this->control->getAlien()), obj);
+					if(this->control->getAlien().getMovement()!=0)
+					{
+						previousX = this->control->getAlien().getX();
+						previousY = this->control->getAlien().getY();
+						obj1 = &(this->control->getAlien().yields());
+												
+						this->control->getAlien().setX(x);
+						this->control->getAlien().setY(y);
+						this->setObjectAt(this->control->getAlien(), x, y);
+						
+						obj1->setX(previousX);
+						obj1->setY(previousY);
+						this->setObjectAt(*obj1,previousX,previousY);
+						
+						
+					}
+					if(this->control!=nullptr)
+					{
+						this->control->display();
+						pf::Pause();
+						
+					}
+				}
+				
+			}
+		}
+		
+	}
+	
+	
+	void Gameboard::zombieMove(Zombie* zombie, int direction)
+	{
+		int next = -1;
+		bool check = false;
+		Object* obj = nullptr;
+		int x = -1;
+		int y = -1;
+		int previousX = -1;
+		int previousY = -1;
+		int nextX = -1;
+		int nextY = -1;
+		
+		Object* obj1 = nullptr;
+		int _nextDirection = direction;
+		
+		if((this->control!=nullptr)&&(zombie!=nullptr)&&(zombie->getX()>=0)&&(zombie->getY()>=0))
+		{
+			
+			
+			zombie->setMovement(_nextDirection);
+			if((_nextDirection=zombie->getMovement())!=0)
+			{
+				check = false;
+				next = zombie->move();
+				std::cout << "zombie move next=" << next << std::endl;
+				if(next>=0)
+				{
+					switch(_nextDirection)
+					{
+						//right or left
+						case 1:
+						case 3:
+							check = this->withinBoard(next,0);
+							x = next;
+							y = zombie->getY();
+						break;
+						
+						//down or up
+						case 2:
+						case 4:
+							check = this->withinBoard(next,1);
+							y = next;
+							x = zombie->getX();
+						break;
+						
+					}
+					
+				}
+				if(check==false)
+				{	
+					//alien stop. hits border
+					zombie->setMovement(0);
+			
+				}
+				else
+				{
+					obj = &(this->getObjectAt(x,y));
+					this->encounter(zombie, obj);
+					if(zombie->getMovement()!=0)
+					{
+						previousX = zombie->getX();
+						previousY = zombie->getY();
+						obj1 = &(zombie->yields());
+												
+						zombie->setX(x);
+						zombie->setY(y);
+						this->setObjectAt(*zombie, x, y);
+						
+						obj1->setX(previousX);
+						obj1->setY(previousY);
+						this->setObjectAt(*obj1,previousX,previousY);
+						
+						Alien& alien = this->control->getAlien();
+						nextX = alien.getX() - x;
+						nextY = alien.getY() - y;
+						nextX = ((nextX>=0)? nextX:-nextX);
+						nextY = ((nextY>=0)? nextY:-nextY);
+						if((nextX<=zombie->getAttackRange())&&(nextY<=zombie->getAttackRange()))
+						{
+							zombie->attack(&alien);
+							
+						}
+						
+						
+					}
+					if(this->control!=nullptr)
+					{
+						this->control->display();
+						pf::Pause();
+						
+					}
+				}
+				
+			}
+			
+		}
+		
+	}
+	
+	bool Gameboard::withinBoard(int location, int axis) const
+	{
+		bool result = false;
+		if(location>=0)
+		{
+			if(axis==0)	//x axis
+			{
+				result = ((this->columnCount)> location);
+			}
+			else
+			{
+				// y axis
+				result = ((this->rowCount)> location);
+			}
+		}
+		return result;
+	}
+	
+	void Gameboard::encounter(Alien* alien, Object* object)
+	{
+		char ch = 0;
+		std::stringstream ss;
+		Zombie* zombie = nullptr;
+		Arrow* arrow = nullptr;
+		Rock* rock = nullptr;
+		Health* health = nullptr;
+		Space* space = nullptr;
+		Pod* pod = nullptr;
+		Trail* trail = nullptr;
+		int x = 0;
+		int y = 0;
+		if((alien!=nullptr)&&(object!=nullptr))
+		{
+			ch = object->getSymbol();
+			std::cout <<"encounter ch="<< ch << std::endl;
+			switch(ch)
+			{
+				//zombie
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+					zombie = (Zombie*) object;
+					ss << "Alien Confronts with Zombie " << ch <<" at x = " << alien->getX()+1 << ", y = " << alien->getY()+1 << std::endl;
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+					alien->attack(*zombie);
+				break;
+				
+				
+				//arrow
+				case '>':
+					arrow = (Arrow*) object;
+					ss << "Alien Collects to Arrow " << ch << " at x = " << arrow->getX()+1 << ", y = " << arrow->getY()+1 <<  ". Arrow Power = " << arrow->getAttackPower() <<std::endl;
+		
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+					alien->collect(*arrow);
+					alien->setMovement(1);				
+				break;
+			
+				case 'v':
+					arrow = (Arrow*) object;
+					ss << "Alien Collects to Arrow " << ch << " at x = " << arrow->getX()+1 << ", y = " << arrow->getY()+1 <<  ". Arrow Power = " << arrow->getAttackPower() <<std::endl;
+		
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+					alien->collect(*arrow);
+					alien->setMovement(2);			
+				break;
+			
+				case '<':
+					arrow = (Arrow*) object;
+					ss << "Alien Collects to Arrow " << ch << " at x = " << arrow->getX()+1 << ", y = " << arrow->getY()+1 <<  ". Arrow Power = " << arrow->getAttackPower() <<std::endl;
+		
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+					alien->collect(*arrow);
+					alien->setMovement(3);			
+				break;
+						
+		
+				case '^':
+					arrow = (Arrow*) object;
+					ss << "Alien Collects to Arrow " << ch << " at x = " << arrow->getX()+1 << ", y = " << arrow->getY()+1 <<  ". Arrow Power = " << arrow->getAttackPower() <<std::endl;
+		
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+					alien->collect(*arrow);
+					alien->setMovement(4);			
+				break;
+				
+				
+				//rock
+				case 'r':
+					rock = (Rock*) object;
+					ss << "Alien blocked by Rock" << std::endl; 
+					ss << "Alien location x = " << alien->getX()+1 << ", y = " << alien->getY()+1 <<  std::endl;
+					ss << "Rock location x = " << rock->getX()+1 << ", y = " << rock->getY()+1 <<  std::endl;
+					alien->setMovement(0);	//alien stop
+					//rock->flipped = true;
+					rock->flip();
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+				break;
+				
+				//health
+				case 'h':
+					health = (Health*) object;
+					ss << "Alien Collects to Health at x = " << alien->getX()+1 << ", y = " << alien->getY()+1 <<  ". Health capacity = " << health->getHealingPoint() <<std::endl;
+		
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+					alien->collect(*health);
+				break;
+				
+				//space
+				case ' ':
+					space = (Space*) object;
+					ss << "Alien traveled to SPACE at x = " << space->getX()+1 << ", y = " << space->getY()+1 << std::endl;
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+				break;
+				
+				//pod
+				case 'p':
+					pod = (Pod*) object;
+					x = pod->getX();
+					y = pod->getY();
+					ss << "Alien traveled to Pod at x = " << x+1 << ", y = " << y+1 << ". Effective Power = " << pod->getAttackPower() <<  ". Effective Range = " << pod->getAttackRange() << std::endl;
+					alien->collect(*pod);
+					
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+				break;
+				
+				//Trail
+				case '.':
+				trail = (Trail*) object;
+					ss << "Alien traveled to Trail at x = " << trail->getX()+1 << ", y = " << trail->getY()+1 << std::endl;
+					if(this->control!=nullptr)
+					{
+						this->control->setStatusTxt(ss.str());
+						//this->control->display();
+					}
+				break;
+			}
+			
+		}
+	}
+	
+	void Gameboard::encounter(Zombie* zombie, Object* object)
+	{
+		char ch = 0;
+		std::stringstream ss;
+		//Zombie* zombie1 = nullptr;
+		Arrow* arrow = nullptr;
+		Rock* rock = nullptr;
+		Health* health = nullptr;
+		Space* space = nullptr;
+		Pod* pod = nullptr;
+		Trail* trail = nullptr;
+		Zombie* zombie1 = nullptr;
+		int x = 0;
+		int y = 0;
+		
+		if((object!=nullptr)&&(zombie!=nullptr))
+		{
+			ch = object->getSymbol();
+			switch(ch)
+			{
+				//zombie
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+				zombie1 = (Zombie*) object;
+				ss << "Zombie "<< zombie->getSymbol() <<" meets with Zombie " << zombie1->getSymbol() <<" at x = " << zombie1->getX()+1 << ", y = " << zombie1->getY()+1 << std::endl;
+				if(this->control!=nullptr)
+				{
+					this->control->setStatusTxt(ss.str());
+					//this->control->display();
+				}
+				zombie->setMovement(0);
+							
+				break;
+				
+				//arrow
+				case '<':
+				case '^':
+				case '>':
+				case 'v':
+					arrow = (Arrow*) object;
+					x = zombie->getX() - arrow->getX();
+					y = zombie->getY() - arrow->getY();
+					if((((x==-1)||(x==1))&&(y==0))||(((y==-1)||(y==1))&&(x==0)))
+					{
+						ss << "Zombie " << zombie->getSymbol() << " walks to Arrow " << ch << " at x = " << arrow->getX()+1 << ", y = " << arrow->getY()+1 <<  ". Arrow Power = " << arrow->getAttackPower() << std::endl;
+												
+						if(this->control!=nullptr)
+						{
+							this->control->setStatusTxt(ss.str());
+							//this->control->display();
+						}
+					}
+				
+				break;
+				
+				//rock
+				case 'r':
+					rock = (Rock*) object;
+					x = zombie->getX() - rock->getX();
+					y = zombie->getY() - rock->getY();
+					if((((x==-1)||(x==1))&&(y==0))||(((y==-1)||(y==1))&&(x==0)))
+					{
+						ss << "Zombie " << zombie->getSymbol() << " walks to Rock at x = " << rock->getX()+1 << ", y = " << rock->getY()+1 << std::endl;
+						
+						if(this->control!=nullptr)
+						{
+							this->control->setStatusTxt(ss.str());
+							//this->control->display();
+						}
+					}
+				break;
+				
+				//health
+				case 'h':
+					health = (Health*) object;
+					x = zombie->getX() - health->getX();
+					y = zombie->getY() - health->getY();
+					if((((x==-1)||(x==1))&&(y==0))||(((y==-1)||(y==1))&&(x==0)))
+					{
+						ss << "Zombie " << zombie->getSymbol() << " walks to Health at x = " << health->getX()+1 << ", y = " << health->getY()+1 <<  ". Health capacity = " << health->getHealingPoint() <<std::endl;
+					
+						if(this->control!=nullptr)
+						{
+							this->control->setStatusTxt(ss.str());
+							//this->control->display();
+						}
+					}
+				break;
+				
+				//space
+				case ' ':
+					space = (Space*) object;
+					x = zombie->getX() - space->getX();
+					y = zombie->getY() - space->getY();
+					if((((x==-1)||(x==1))&&(y==0))||(((y==-1)||(y==1))&&(x==0)))
+					{
+						ss << "Zombie " << zombie->getSymbol() << " traveled to SPACE at x = " << space->getX()+1 << ", y = " << space->getY()+1 << std::endl;
+						if(this->control!=nullptr)
+						{
+							this->control->setStatusTxt(ss.str());
+							//this->control->display();
+						}
+					}
+				break;
+				
+				//pod
+				case 'p':
+					pod = (Pod*) object;
+					x = zombie->getX() - pod->getX();
+					y = zombie->getY() - pod->getY();
+					if((((x==-1)||(x==1))&&(y==0))||(((y==-1)||(y==1))&&(x==0)))
+					{
+						ss << "Zombie " << zombie->getSymbol() << " traveled to Pod at x = " << pod->getX()+1 << ", y = " << pod->getY()+1 << std::endl;
+						if(this->control!=nullptr)
+						{
+							this->control->setStatusTxt(ss.str());
+							//this->control->display();
+						}
+					}
+				break;
+				
+				//trail
+				case '.':
+					trail = (Trail*) object;
+					x = zombie->getX() - trail->getX();
+					y = zombie->getY() - trail->getY();
+					if((((x==-1)||(x==1))&&(y==0))||(((y==-1)||(y==1))&&(x==0)))
+					{
+						ss << "Zombie " << zombie->getSymbol() << " traveled to Trail at x = " << trail->getX()+1 << ", y = " << trail->getY()+1 << std::endl;
+						if(this->control!=nullptr)
+						{
+							this->control->setStatusTxt(ss.str());
+							//this->control->display();
+						}
+					}
+				break;
+			}
+		}
+	}
+	
+	
+	
+	std::ostream& Gameboard::output(std::ostream& _os)
+	{
+		//int rowCount;
+		//int columnCount;
+		//int zombieCount;
+		int i = 0;
+		int j = 0;
+		_os << "[Gameboard]" << std::endl;
+		_os << "rowCount=" << this->rowCount << std::endl;
+		_os << "columnCount=" << this->columnCount << std::endl;
+		_os << "zombieCount=" << this->zombieCount << std::endl;
+		for(i = 0; i < this->rowCount; ++i)
+		{
+			for(j=0; j < this->columnCount; ++j)
+			{
+				Object* obj = &(this->getObjectAt(j,i));
+				obj->output(_os);
+			}
+			
+		}
+		j = 0;
+		j = this->getZombieCount();
+		for(i=0; i < j ; ++i)
+		{
+			Zombie& zombie = this->getZombie(i);
+			if((zombie.getX()<0)||(zombie.getY()<0))
+			{
+				zombie.output(_os);
+			}
+		}
+		if(this->control!=nullptr)
+		{
+			if((this->control->getAlien().getX()<0)||(this->control->getAlien().getY()<0))
+			{
+				this->control->getAlien().output(_os);
+			}
+		}
+		return _os;
+	}
+	
+	
+	std::istream& Gameboard::load(std::istream& _in)
+	{
+		const int dsize = 1024;
+		char _data[dsize];
+		std::string data;
+		int count = 0;
+		int equalSign = 0;
+		int _rowC = 0;
+		int _colC = 0;
+		int _zomC = 0;
+		int i = 0;
+		int j = 0;
+		int k = 0;
+		int x = 0;
+		int y = 0;
+		Zombie* zombie = nullptr;
+		Arrow* arrow = nullptr;
+		Health* health = nullptr;
+		Rock* rock = nullptr;
+		Space* space = nullptr;
+		Trail* trail = nullptr;
+		Pod* pod = nullptr;
+		while(_in.getline(_data,dsize))
+		{
+			if((count=_in.gcount())>0)
+			{
+				data = _data;
+				
+				if(data.at(0)=='[')
+				{
+					
+					if((_rowC>0)&&(_colC>0)&&(_zomC>0))
+					{
+						this->rowCount = _rowC;
+						this->columnCount = _colC;
+						this->zombieCount = _zomC;
+						this->cleanUpZombie();
+						this->cleanUpObject();
+						this->fill();
+						this->fillZombies();
+						_rowC = -1;
+						_colC = -1;
+						_zomC = -1;
+					
+					}
+					if(data=="[Alien]")
+					{
+						if(this->control!=nullptr)
+						{
+							this->control->getAlien().load(_in);
+							x = this->control->getAlien().getX();
+							y = this->control->getAlien().getY();
+							if((x>=0)&&(y>=0))
+								this->placeAlien(this->control->getAlien(), x, y);
+						}
+					}
+					else
+					{
+						if(data=="[Zombie]")
+						{
+							zombie = new Zombie(*this);
+							zombie->load(_in);
+							x = zombie->getX();
+							y = zombie->getY();
+							i = 0;
+							j = ((int)zombie->getSymbol());
+							if(j>65)
+							{
+								j -= 65;
+							}
+							else
+							{
+								j -= 49;
+							}
+							k=0;
+							for(std::list<Zombie*>::iterator it = this->zombies.begin();(i==0)&&(it!=this->zombies.end()); it++)
+							{
+								if(k==j)
+								{
+									*it = zombie;
+									++i;
+								}
+								++k;
+							}
+							if(i==0)
+								this->zombies.push_back(zombie);
+							if((x>=0)&&(y>=0))
+								this->setObjectAt(*zombie,x,y);
+						}
+						else
+						{
+							if(data=="[Arrow]")
+							{
+								arrow = new Arrow();
+								arrow->load(_in);
+								x = arrow->getX();
+								y = arrow->getY();
+								this->setObjectAt(*arrow,x,y);
+								
+							}
+							else
+							{
+								if(data=="[Health]")
+								{
+									health = new Health();
+									health->load(_in);
+									x = health->getX();
+									y = health->getY();
+									this->setObjectAt(*health,x,y);
+								}
+								else
+								{
+									if(data=="[Rock]")
+									{
+										rock = new Rock();
+										rock->load(_in);
+										x = rock->getX();
+										y = rock->getY();
+										this->setObjectAt(*rock,x,y);
+									}
+									else
+									{
+										if(data=="[Space]")
+										{
+											space = new Space();
+											space->load(_in);
+											x = space->getX();
+											y = space->getY();
+											this->setObjectAt(*space,x,y);
+										}
+										else
+										{
+											if(data=="[Trail]")
+											{
+												trail = new Trail();
+												trail->load(_in);
+												x = trail->getX();
+												y = trail->getY();
+												this->setObjectAt(*trail,x,y);
+											}
+											else
+											{
+												if(data=="[Pod]")
+												{
+													pod = new Pod();
+													pod->load(_in);
+													x = pod->getX();
+													y = pod->getY();
+													this->setObjectAt(*pod,x,y);
+												}
+											}
+										}
+									}
+									
+								}
+							}
+							
+						}
+					}
+					
+				}
+				else
+				{
+					equalSign = data.find('=');
+					if((equalSign>=0)&&((equalSign+1)<count))
+					{
+						const std::string parameter = data.substr(0,equalSign);
+						const std::string value = data.substr(equalSign+1);
+						std::cout << "gameboard load  parameter=" << parameter << ",value="<< value << std::endl;
+						if(parameter=="rowCount")
+						{
+							
+							i = (int) std::stoul(value);
+							_rowC = i;
+							
+						}
+						else
+						{
+							if(parameter=="columnCount")
+							{
+								i = (int) std::stoul(value);
+								_colC = i;
+								
+							}
+							else
+							{
+								if(parameter=="zombieCount")
+								{
+									i = (int) std::stoul(value);
+									_zomC = i;
+								}
+							}
+							
+						}
+					}
+				}
+				
+			}
+		}
+		return _in;
+	}
+	
+	
 	Alien::Alien(Gameboard& _gb):StoryCharacter(_gb),stopStatus(0)
 	{
 		this->symbol = 'A';
@@ -696,6 +1537,43 @@ namespace avz
 			}
 		}
 	}
+	void Gameboard::cleanUpZombie()
+	{
+		Zombie* ptr = nullptr;
+		char ch = 0;
+		for(std::list<Zombie*>::iterator it = this->zombies.begin(); it!=(this->zombies.end()); )
+		{
+			ptr = *it;
+			this->setObjectAt(*(new Space()), ptr->getX(), ptr->getY());
+			it = this->zombies.erase(it);
+			delete ptr;
+					
+		}
+		
+		
+	}
+	
+	
+	void Gameboard::cleanUpObject()
+	{
+		Object* ptr = nullptr;
+		for(std::list<std::list<Object*> >::iterator it = this->objects.begin(); it != this->objects.end();)
+		{
+			for(std::list<Object*>::iterator inner_it = it->begin(); inner_it!= it->end();)
+			{
+				ptr = *inner_it;
+				inner_it = it->erase(inner_it);
+				if((this->control!=nullptr)&&(ptr!=(&(this->control->getAlien()))))
+				{
+					delete ptr;
+				}
+				
+			}
+			it = this->objects.erase(it);
+		}
+		
+		
+	}
 	
 	int Alien::calculateNextStep(const int nextTranslation)
 	{
@@ -713,6 +1591,61 @@ namespace avz
 			
 		}
 		return nextStep;
+	}
+	
+	std::ostream& Object::output(std::ostream& _ostream) const
+	{
+		_ostream << "x="<< this->x << std::endl;
+		_ostream << "y="<< this->y << std::endl;
+		_ostream << "symbol="<< this->symbol << std::endl;
+		return _ostream;
+	}
+	
+	std::istream& Object::load(std::istream& _in)
+	{
+		const int dsize = 1024;
+		char _data[dsize];
+		std::string data;
+		int equalSign = 0;
+		int count = 0;
+		int i = 0;
+		while((i<2)&&(_in.peek()!='[')&&(_in.getline(_data,dsize)))
+		{
+			count = _in.gcount() - 1;
+			data = _data;
+			if(count>0)
+			{
+				equalSign = data.find('=');
+				if((equalSign+1)<count)
+				{
+					const std::string parameter = data.substr(0,equalSign);
+					const std::string value = data.substr(equalSign+1);
+					if(parameter=="x")
+					{
+						this->setX((int)std::stoul(value));
+						++i;
+					}
+					else
+					{
+						if(parameter=="y")
+						{
+							this->setY((int)std::stoul(value));
+							++i;
+						}
+						else
+						{
+							if(parameter=="symbol")
+							{
+								this->setSymbol(value.at(0));
+								++i;
+							}
+						}
+					}
+					
+				}
+			}
+		}
+		return _in;
 	}
 	
 	void Alien::attack(StoryCharacter& enemy)
@@ -837,177 +1770,6 @@ namespace avz
 			//this->control->display();
 		}
 		
-	}
-	#include "AVZ.hpp"
-
-namespace avz
-{
-	Gameboard::Gameboard():rowCount(3),columnCount(19), zombieCount(3), objects(rowCount), zombies(0), control(nullptr)//, map(nullptr)
-	{
-		
-		Gameboard(rowCount,columnCount);
-	}
-	
-	Gameboard::Gameboard(const int row, const int column): rowCount(row),columnCount(column) ,zombieCount(3), objects(row),zombies(0), control(nullptr)//, map(nullptr), 
-	{
-		std::cout << "Gameboard" << std::endl;
-		
-		//std::srand(time(0));
-		
-		this->randFill();
-		this->randFillZombie();
-		
-	}
-	
-	Gameboard::Gameboard(const int row, const int column, int zbCount): rowCount(row),columnCount(column) ,zombieCount(zbCount), objects(row),zombies(0), control(nullptr)//, map(nullptr), 
-	{
-		std::cout << "Gameboard" << std::endl;
-		
-		std::srand(time(0));
-		this->randFill();
-		this->randFillZombie();
-	}
-
-	
-	
-	Gameboard::~Gameboard()
-	{
-		Object* ptr = nullptr;
-		this->zombies.clear();
-		
-		for(std::list<std::list<Object*> >::iterator it = this->objects.begin(); it != this->objects.end();)
-		{
-			for(std::list<Object*>::iterator inner_it = it->begin(); inner_it!= it->end();)
-			{
-				ptr = *inner_it;
-				inner_it = it->erase(inner_it);
-				if((this->control!=nullptr)&&(ptr!=(&(this->control->getAlien()))))
-				{
-					delete ptr;
-				}
-				
-			}
-			it = this->objects.erase(it);
-		}
-		
-	}
-	
-	void Gameboard::setControl(Control* ptr)
-	{
-		this->control = ptr;
-		for(std::list<std::list<Object*> >::iterator it = this->objects.begin();(it!=this->objects.end()); it++)
-		{
-			for(std::list<Object*>::iterator inner_it = (*it).begin(); (inner_it!=(*it).end()); inner_it++)
-			{
-				(*inner_it)->setControl(this->control);
-			}
-		}
-		std::cout.flush();
-	}
-	
-	void Gameboard::randFill()
-	{
-		Object* ptr = nullptr;
-		Pod* podPtr = nullptr;
-		int i = 0;
-		int j = 0;
-		int randomNumber = 0;
-		char ch = 0;
-		const int attackPower = 20;
-		const int healingPoint = 20;
-		int randomRange = 0;
-		int smaller = 0;
-		
-		std::srand(time(0));
-		std::cout << "row=" << this->rowCount << ",columnCount=" << this->columnCount << std::endl;
-		//for(i =0; i < this->rowCount; ++i)
-			
-		for( std::list<std::list<Object*> >::iterator it = this->objects.begin(); it!=this->objects.end(); it++)
-		{
-			//std::list<Object> object(this->columnCount);
-			std::list<Object*>& object = *it;
-			for(j=0; j < this->columnCount; ++j)
-			{
-				randomNumber = std::rand()%8;
-				switch(randomNumber)
-				{
-					case 0:
-						ch = '<';
-						ptr = new Arrow(attackPower, ch);
-						//object.push_back(new Arrow(attackPower, ch));
-					break;
-					case 1:
-						ch = '>';
-						ptr = new Arrow(attackPower, ch);
-						//object.push_back(new Arrow(attackPower, ch));
-					break;
-					case 2:
-						ch = '^';
-						ptr = new Arrow(attackPower, ch);
-						//object.push_back(new Arrow(attackPower, ch));
-					break;
-					case 3:
-						ch = 'v';
-						ptr = new Arrow(attackPower, ch);
-						//object.push_back(new Arrow(attackPower, ch));
-					break;
-					case 4:
-						ch = 'h';
-						ptr = new Health(healingPoint);
-						//object.push_back(new Health(healingPoint));
-					break;
-					case 5:
-						ch = 'r';
-						ptr = new Rock();
-						//object.push_back(new Rock());
-					break;
-					case 6:
-						ch = (char)32;
-						ptr = new Space();
-						//object.push_back(new Space());
-					break;
-					case 7:
-						ch = 'p';
-						podPtr = new Pod();
-						ptr = podPtr;
-						//object.push_back(new Pod());
-					break;
-					//case 8:
-					//	ch = '.';
-					//	object.push_back(new Trail());
-					//break;
-					
-				}
-				if(ptr!=nullptr)
-				{
-					if(podPtr!=nullptr)
-					{
-						smaller = this->getRowCount();
-						if(this->getColumnCount()<smaller)
-							smaller = this->getColumnCount();
-						do
-						{
-							randomRange  = std::rand()%smaller;
-						
-						}while(randomRange==0);
-						podPtr->setAttackRange(randomRange);
-						podPtr = nullptr;
-					}
-					
-					ptr->setX(j);
-					ptr->setY(i);
-					ptr->setControl(this->control);
-					object.push_back(ptr);
-				}
-				//object.back()->setX(j);
-				//object.back()->setY(i);
-				
-			}
-			//this->objects.push_back(object);
-			++i;
-			
-		}
-	
 	}
 	
 	void Gameboard::randFillZombie()
