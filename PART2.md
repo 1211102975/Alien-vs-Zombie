@@ -46,22 +46,22 @@ Additional Features
 Contributions
 List down the contribution of each group members.
 Loi Xinyi
--Alien movement
--Alien attack zombie when encounter.
--Heal,pod,rock and arrow function.
--Alien leaves trial and trail reset when turn end.
--Alien collect object
-Alien and zombie take turns.
+  -Alien movement
+  -Alien attack zombie when encounter.
+  -Heal,pod,rock and arrow function.
+  -Alien leaves trial and trail reset when turn end.
+  -Alien collect object
+  -Alien and zombie take turns.
 Lam Yuet Xin
--Randomly generate gameboard.
--Randomly generate object (arrow,heal,pod,rock,space).
--Randomly generate Zombie on gameboard.
--Zombie walk randomly
--Zombie attack Alien
--Zombie attack range
+  -Randomly generate gameboard.
+  -Randomly generate object (arrow,heal,pod,rock,space).
+  -Randomly generate Zombie on gameboard.
+  -Zombie walk randomly
+  -Zombie attack Alien
+  -Zombie attack range
 Mischelle
--Alien is constant at the center of gameboard.
--save and load game
+  -Alien is constant at the center of gameboard.
+  -save and load game
 
 Problems Encountered & Solutions
 Describe the problems encountered and provide the solutions / plan for the solutions.
