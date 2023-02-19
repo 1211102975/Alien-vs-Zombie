@@ -1,8 +1,14 @@
 #ifndef _AVZ_
+#define _ANZ_
 #include<list>
 #include<string>
 #include<algorithm>
 #include<cctype>
+#include<ctime>
+#include<iostream>
+#include<sstream>
+#include<fstream>
+#include "pf\helper.h"
 
 namespace avz
 {
@@ -11,6 +17,7 @@ namespace avz
 	class Alien;
 	class Health;
 	class Arrow;
+	class Pod;
 	class Rock;
 	class Gameboard;
 	class Control;
@@ -138,11 +145,21 @@ namespace avz
 			Zombie(Gameboard&);
 			Zombie(Gameboard& gb, const char ch);
 			Zombie(Gameboard& gb, const char ch, const int life, const int attack_power, const int attack_range);
-			//virtual ~Zombie();
+			virtual ~Zombie();
 			void setAttackRange(int);
 			int getAttackRange() const;
-			virtual void encounterEvent(Alien& alien);
+			
+			
+			Object& yields();
+			virtual int getMovement() const;
+			virtual void setMovement(int movement);
+			virtual int move();
+			virtual void attack(Alien* alien);
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 		protected:
+			int movement;
+			
 		private:
 			int attackRange;
 	};
