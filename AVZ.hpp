@@ -37,6 +37,9 @@ namespace avz
 			virtual Object& reveal();
 			virtual void encounterEvent(Alien& alien);
 			void setControl(Control* ptr);
+			
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 		protected:
 			int x;
 			int y;
@@ -102,7 +105,24 @@ namespace avz
 			void setZombieCount(int count);
 			Zombie& getZombie(const int index);
 			void setControl(Control* ptr);
+			
+			virtual void encounter(Alien* alien, Object* object);
+			virtual void encounter(Zombie* zombie, Object* object);
+			virtual void alienMove(int direction);
+			virtual void zombieMove(Zombie* zombie, int direction);
+			virtual bool withinBoard(int next, int axis) const;
+			virtual std::ostream& output(std::ostream&);
+			virtual std::istream& load(std::istream&);
+			bool isZombie(const int x, const int y) const;
+			bool isArrow(const int x, const int y);
+			
+		protected:
+			void fill();
+			void fillZombies();
+		
 		private:
+			void cleanUpZombie();
+			void cleanUpObject();
 			int rowCount;
 			int columnCount;
 			int zombieCount;
@@ -122,19 +142,24 @@ namespace avz
 			//Alien();
 			Alien(Gameboard&);
 			Object& yields();
-			virtual void move(const int, const int);
+			
 			virtual void attack(StoryCharacter&);
 			virtual void attack(Zombie&);
+			virtual void attack(Zombie&, Pod&);
 			virtual void collect(const Health&);
 			virtual void collect(const Arrow&);
 			virtual void collect(Rock&);
-			virtual void stop();
-			virtual void readyToGo();
-			virtual bool isReadyToMove();
-			virtual int calculateNextStep(const int nextTranslation);
+			virtual void collect(Pod&);
+		
+			virtual int getMovement() const;
+			virtual void setMovement(int movement);
+			virtual int move();
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 			~Alien();
-		protected:
 			int stopStatus;
+		protected:
+			int movement;
 		private:
 	};
 	
@@ -175,14 +200,22 @@ namespace avz
 			void setStatusTxt(const std::string&);
 			void addStatusTxt(const char*);
 			void addStatusTxt(const std::string&);
+			Alien& getAlien();
 		protected:
 			Gameboard& gameboard;
 			Alien& alien;
+			int currentZombieIndex;
 			std::string commandTxt;
 			std::string statusTxt;
 			int statusCode;
 			int turnCount;
+			bool retainOnce;
+			int isGameOver();
+			virtual int pickZombie(const int);
+			virtual int pickDirection(Zombie& zombie) const;
 		private:
+			void disableFlipTurnForOnce();
+			void flipTurn();
 			void requestInput();
 			void processInput();
 			
@@ -197,6 +230,7 @@ namespace avz
 			void processCommandHelp();
 			void processCommandSave();
 			void processCommandLoad();
+			void zombieWalk(Zombie& zombie, const int direction);
 	};
 	
 	
@@ -209,6 +243,8 @@ namespace avz
 			//virtual ~Health();
 			int getHealingPoint() const;
 			virtual void encounterEvent(Alien& alien);
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 		private:
 			int healingPoint;
 	};
@@ -223,6 +259,8 @@ namespace avz
 			//virtual ~Arrow();
 			int getAttackPower() const;
 			virtual void encounterEvent(Alien& alien);
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 		private:
 			int attackPower;
 			
@@ -237,6 +275,8 @@ namespace avz
 			//virtual ~Rock();
 			virtual void encounterEvent(Alien& alien);
 			virtual Object& reveal();
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 		protected:
 			bool flipped;
 			Object& discovered();
@@ -249,10 +289,17 @@ namespace avz
 	class Pod : public Object
 	{
 		public:
-			Pod();
-			//virtual ~Pod();
-			virtual void encounterEvent(Alien& alien);
+			virtual int getAttackPower() const;
+			virtual void setAttackPower(const int attackPower);
+			virtual int getAttackRange() const;
+			virtual void setAttackRange(const int attackPower);
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
+		protected:
 		
+		private:
+			int attackPower;
+			int attackRange;
 	};
 	
 	class Space : public Object
@@ -261,6 +308,8 @@ namespace avz
 			Space();
 			//virtual ~Space();
 			virtual void encounterEvent(Alien& alien);
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 	};
 	
 	class Trail : public Object
@@ -269,7 +318,12 @@ namespace avz
 			Trail();
 			//virtual ~Trail();
 			virtual void encounterEvent(Alien& alien);
+			virtual std::ostream& output(std::ostream&) const;
+			virtual std::istream& load(std::istream&);
 			virtual Object& reveal();
+			
+		protected:
+			Gameboard* gameboard;
 	};
 	
 	
