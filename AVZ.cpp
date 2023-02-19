@@ -1481,13 +1481,101 @@ namespace avz
 	
 	void Control::processCommandSave()
 	{
+		std::stringstream ss;
+		std::ofstream outputFile("GameFile.save", std::ofstream::trunc);
+		if(outputFile.is_open())
+		{
+			outputFile << "[Control]" << std::endl;
+			outputFile << "commandTxt=" << this->commandTxt << std::endl;
+			outputFile << "statusTxt=" << this->statusTxt << std::endl;
+			outputFile << "turnCount=" << this->turnCount << std::endl;
+			this->gameboard.output(outputFile);
+			outputFile.close();
+			ss << "Game Saved" << std::endl;
+			this->addStatusTxt(ss.str());
+		}
+		else
+		{
+			ss << "GError to Save Game" << std::endl;
+			this->addStatusTxt(ss.str());
+		}
 		
 	}
 	
 	void Control::processCommandLoad()
 	{
-		
+		const int dsize = 1024;
+		char _data[dsize];
+		std::string data;
+		int count = 0;
+		int equalSign = -1;
+		std::string mainItem;
+		std::stringstream ss;
+		std::ifstream inputFile("GameFile.save", std::istream::in);
+		if(inputFile.is_open())
+		{
+			while(inputFile.getline(_data,dsize))
+			{
+				if((count=inputFile.gcount())>0)
+				{	
+					data = _data;
+					std::cout << "load data=" << data << std::endl;
+					if(data.at(0)=='[')
+					{
+						mainItem = data;
+					}
+					if(mainItem=="[Control]")
+					{
+						equalSign = -1;
+						equalSign = data.find("=");
+						if((equalSign>=0)&&((equalSign+1)<count))
+						{
+							const std::string& parameter = data.substr(0,equalSign);
+							const std::string& value = data.substr(equalSign+1);
+							if(parameter=="commandTxt")
+							{
+								this->commandTxt = value;
+							}
+							else
+							{
+								if(parameter=="statusTxt")
+								{
+									this->statusTxt = value;
+								}
+								else
+								{
+									if(parameter=="turnCount")
+									{
+										this->turnCount = (int)std::stoul(value);
+									}
+								}
+							}
+							
+						}
+					}
+					else
+					{
+						if(mainItem=="[Gameboard]")
+						{
+							this->gameboard.load(inputFile);
+						}
+						
+					}
+					
+					
+				}
+			}
+			inputFile.close();
+			ss << "Game Loaded Successfully" << std::endl;
+			this->setStatusTxt(ss.str());
+		}
+		else
+		{
+			ss << "Unable to load Game" << std::endl;
+			this->setStatusTxt(ss.str());
+		}
 	}
+	
 	
 	int Control::work()
 	{
